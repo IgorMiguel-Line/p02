@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Decifra Aí</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0052FF; --primary-dark: #0039CC; --secondary: #00A8FF;
+            --accent: #7B2D8E; --success: #00C853; --warning: #FFAB00; --danger: #FF5252;
+            --bg-top: #0052FF; --bg-mid: #1A75FF; --bg-bottom: #4DA6FF;
+            --card-bg: #FFFFFF; --text-dark: #0A1628; --text-medium: #4A5568;
+            --text-light: #8A9AAB; --border: #E2E8F0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        html, body { height: 100%; overflow: hidden; }
+        body { background: #000; display: flex; justify-content: center; align-items: center; }
+        .phone-frame { width: 100%; max-width: 390px; height: 100vh; max-height: 844px; background: linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 30%, var(--bg-bottom) 100%); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+        @media (min-width: 400px) { .phone-frame { height: 844px; border-radius: 40px; box-shadow: 0 25px 80px rgba(0,0,0,0.4); border: 8px solid #1a1a1a; } }
+        .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; overflow-x: hidden; animation: fadeIn 0.25s ease; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .screen::-webkit-scrollbar { display: none; }
+        .screen { -ms-overflow-style: none; scrollbar-width: none; }
+        .landing-screen { background: #FFFFFF; justify-content: center; align-items: center; padding: 48px 32px; text-align: center; }
+        .landing-logo { margin-bottom: 48px; }
+        .brain-icon { width: 100px; height: 100px; margin: 0 auto 20px; align-items: center; justify-content: center; display: flex; }
+        .landing-title { font-size: 42px; font-weight: 800; color: var(--text-dark); letter-spacing: -1px; line-height: 1.1; }
+        .landing-title span { display: block; font-size: 64px; color: var(--primary); margin-top: -4px; }
+        .landing-tagline { color: var(--primary); font-size: 13px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; margin-top: 24px; line-height: 1.6; }
+        .landing-buttons { width: 100%; margin-top: auto; padding-top: 48px; }
+        .screen-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 8px; flex-shrink: 0; }
+        .header-back { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .header-logo { display: flex; align-items: center; gap: 6px; color: #fff; font-weight: 700; font-size: 16px; }
+        .header-logo svg { width: 28px; height: 28px; }
+        .header-placeholder { width: 36px; }
+        .header-bell { width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; }
+        .header-bell::after { content: ''; position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; background: #FF4444; border-radius: 50%; border: 1.5px solid var(--bg-top); }
+        .card { background: var(--card-bg); border-radius: 20px 20px 0 0; padding: 24px 20px; flex: 1; overflow-y: auto; }
+        .card::-webkit-scrollbar { display: none; }
+        .card-title { font-size: 22px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .card-subtitle { color: var(--text-medium); font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+        .btn { width: 100%; padding: 16px 20px; border: none; border-radius: 14px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.15s, opacity 0.15s; margin-bottom: 12px; -webkit-appearance: none; }
+        .btn:active { transform: scale(0.97); opacity: 0.9; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: #fff; box-shadow: 0 4px 14px rgba(0,82,255,0.3); }
+        .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-arrow { margin-left: auto; font-size: 18px; opacity: 0.8; }
+        .btn-social { background: #fff; border: 1.5px solid var(--border); color: var(--text-dark); font-size: 14px; }
+        .btn-social img { width: 20px; height: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 6px; color: var(--text-dark); }
+        .input-wrap { position: relative; }
+        .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-light); font-size: 16px; z-index: 2; }
+        .form-input { width: 100%; padding: 14px 14px 14px 42px; border: 1.5px solid var(--border); border-radius: 12px; font-size: 14px; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; background: #fff; -webkit-appearance: none; }
+        .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,82,255,0.08); }
+        .form-input::placeholder { color: var(--text-light); }
+        .password-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-light); cursor: pointer; font-size: 16px; padding: 4px; }
+        .forgot-link { text-align: right; margin: -8px 0 16px; }
+        .forgot-link a { color: var(--primary); font-size: 13px; font-weight: 600; text-decoration: none; }
+        .divider { text-align: center; margin: 16px 0; position: relative; color: var(--text-light); font-size: 13px; }
+        .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 36%; height: 1px; background: var(--border); }
+        .divider::before { left: 0; } .divider::after { right: 0; }
+        .text-center { text-align: center; color: var(--text-medium); font-size: 13px; margin-top: 16px; }
+        .text-link { color: var(--primary); font-weight: 600; text-decoration: none; }
+        .home-greeting { padding: 0 20px 16px; }
+        .home-greeting h1 { color: #fff; font-size: 26px; font-weight: 700; margin-bottom: 4px; }
+        .home-greeting p { color: rgba(255,255,255,0.75); font-size: 14px; }
+        .menu-list { padding: 0 16px; display: flex; flex-direction: column; gap: 10px; }
+        .menu-item { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; color: #fff; text-decoration: none; border: none; cursor: pointer; width: 100%; text-align: left; font-family: inherit; transition: transform 0.15s; }
+        .menu-item:active { transform: scale(0.98); }
+        .menu-item:nth-child(1) { background: linear-gradient(135deg, #0044CC 0%, #0052FF 100%); }
+        .menu-item:nth-child(2) { background: linear-gradient(135deg, #0066FF 0%, #0088FF 100%); }
+        .menu-item:nth-child(3) { background: linear-gradient(135deg, #0099FF 0%, #00BBFF 100%); }
+        .menu-item:nth-child(4) { background: linear-gradient(135deg, #3366FF 0%, #6633FF 100%); }
+        .menu-item:nth-child(5) { background: linear-gradient(135deg, #4455EE 0%, #5544DD 100%); }
+        .menu-icon-box { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .menu-text { font-size: 15px; font-weight: 700; flex: 1; letter-spacing: 0.3px; }
+        .menu-arrow { font-size: 18px; opacity: 0.7; }
+        .points-bar { display: flex; align-items: center; justify-content: space-between; margin: 20px 16px 0; padding: 14px 18px; background: rgba(255,255,255,0.12); border-radius: 14px; backdrop-filter: blur(10px); }
+        .points-info { display: flex; align-items: center; gap: 10px; }
+        .points-icon { font-size: 24px; }
+        .points-label { font-size: 11px; color: rgba(255,255,255,0.8); }
+        .points-value { font-size: 24px; font-weight: 800; color: #fff; }
+        .star-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); border: none; color: #fff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .camera-area { width: 100%; aspect-ratio: 3/4; background: linear-gradient(135deg, #2d1b0e 0%, #5a4a3a 50%, #3d2b1a 100%); border-radius: 16px; position: relative; overflow: hidden; margin-bottom: 16px; }
+        .camera-paper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-3deg); width: 85%; background: rgba(255,255,255,0.88); padding: 18px; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .camera-paper strong { font-size: 15px; color: var(--text-dark); }
+        .camera-paper p { font-size: 13px; color: var(--text-medium); line-height: 1.6; margin-top: 8px; }
+        .camera-paper .options { margin-top: 10px; font-size: 13px; color: var(--text-dark); line-height: 1.8; }
+        .flash-btn { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .camera-controls { display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 16px; }
+        .cam-control { display: flex; flex-direction: column; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 11px; color: var(--text-medium); }
+        .cam-control-icon { width: 48px; height: 48px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .cam-control.main .cam-control-icon { width: 56px; height: 56px; background: var(--primary); color: #fff; font-size: 24px; }
+        .tips-section { margin-bottom: 16px; }
+        .tips-title { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; margin-bottom: 8px; color: var(--text-dark); }
+        .tips-list { list-style: none; padding-left: 4px; }
+        .tips-list li { padding: 4px 0 4px 18px; position: relative; font-size: 13px; color: var(--text-medium); line-height: 1.5; }
+        .tips-list li::before { content: '•'; position: absolute; left: 4px; color: var(--primary); font-weight: bold; font-size: 16px; }
+        .textarea-box { position: relative; margin-bottom: 8px; }
+        .question-textarea { width: 100%; min-height: 180px; padding: 16px; border: 1.5px solid var(--border); border-radius: 14px; font-size: 14px; font-family: inherit; resize: none; background: #fff; line-height: 1.5; }
+        .question-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0,82,255,0.08); }
+        .char-count { text-align: right; font-size: 12px; color: var(--text-light); margin-bottom: 16px; }
+        .audio-center { display: flex; flex-direction: column; align-items: center; padding: 32px 0 24px; }
+        .mic-btn { width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border: none; color: #fff; font-size: 40px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 24px rgba(0,82,255,0.3); transition: transform 0.15s; position: relative; }
+        .mic-btn:active { transform: scale(0.95); }
+        .mic-btn.recording { animation: micPulse 1.4s infinite; }
+        @keyframes micPulse { 0% { box-shadow: 0 0 0 0 rgba(0,82,255,0.4); } 70% { box-shadow: 0 0 0 24px rgba(0,82,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,82,255,0); } }
+        .record-label { margin-top: 16px; font-weight: 600; font-size: 15px; color: var(--text-dark); }
+        .timer-display { font-size: 28px; font-weight: 700; color: var(--text-dark); margin: 12px 0; font-variant-numeric: tabular-nums; font-family: 'SF Mono', Monaco, monospace; }
+        .wave-container { display: flex; align-items: center; justify-content: center; gap: 3px; height: 32px; margin-bottom: 20px; }
+        .wave-bar { width: 3px; background: var(--primary); border-radius: 2px; transition: height 0.1s ease; }
+        .audio-actions-row { display: flex; gap: 12px; }
+        .audio-action { flex: 1; padding: 14px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; color: var(--text-dark); font-family: inherit; }
+        .challenge-banner { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: 16px; padding: 20px; color: #fff; margin-bottom: 20px; position: relative; overflow: hidden; }
+        .challenge-banner::before { content: '🏆'; position: absolute; right: -8px; top: -8px; font-size: 64px; opacity: 0.15; }
+        .challenge-banner h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .challenge-banner p { font-size: 13px; opacity: 0.9; line-height: 1.5; margin-bottom: 8px; }
+        .challenge-timer { font-size: 13px; font-weight: 600; opacity: 0.85; }
+        .tab-bar { display: flex; gap: 24px; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+        .tab-btn { padding: 10px 0; background: none; border: none; font-size: 14px; font-weight: 600; color: var(--text-light); cursor: pointer; position: relative; font-family: inherit; }
+        .tab-btn.active { color: var(--primary); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2.5px; background: var(--primary); border-radius: 2px; }
+        .ranking-list { margin-bottom: 16px; }
+        .rank-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+        .rank-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+        .rank-num.gold { background: #FFF8E1; color: #F9A825; }
+        .rank-num.silver { background: #F5F5F5; color: #757575; }
+        .rank-num.bronze { background: #FFF3E0; color: #EF6C00; }
+        .rank-num.normal { background: #F5F5F5; color: var(--text-light); }
+        .rank-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 14px; flex-shrink: 0; }
+        .rank-name { flex: 1; font-weight: 600; font-size: 14px; }
+        .rank-points { font-weight: 700; font-size: 14px; }
+        .my-position-box { background: linear-gradient(135deg, #f0f7ff 0%, #e6f0ff 100%); border-radius: 14px; padding: 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .my-position-label { font-size: 12px; color: var(--primary); font-weight: 600; margin-bottom: 2px; }
+        .score-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: linear-gradient(135deg, #f0f7ff 0%, #e6f0ff 100%); border-radius: 16px; margin-bottom: 20px; }
+        .score-trophy { width: 64px; height: 64px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+        .score-info h4 { font-size: 13px; color: var(--text-medium); font-weight: 500; margin-bottom: 2px; }
+        .score-big { font-size: 40px; font-weight: 800; color: var(--text-dark); line-height: 1; }
+        .score-unit { font-size: 13px; color: var(--text-medium); font-weight: 500; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+        .stat-box { text-align: center; padding: 8px 4px; }
+        .stat-emoji { font-size: 22px; margin-bottom: 4px; }
+        .stat-label { font-size: 10px; color: var(--text-medium); line-height: 1.3; margin-bottom: 4px; }
+        .stat-val { font-size: 20px; font-weight: 700; }
+        .stat-val.blue { color: var(--primary); }
+        .stat-val.green { color: var(--success); }
+        .stat-val.purple { color: var(--accent); }
+        .section-title { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--text-dark); }
+        .subject-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+        .sub-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .sub-icon.math { background: #E8F5E9; }
+        .sub-icon.port { background: #E3F2FD; }
+        .sub-icon.sci { background: #FFF3E0; }
+        .sub-icon.hist { background: #F3E5F5; }
+        .sub-info { flex: 1; }
+        .sub-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        .progress-track { height: 6px; background: #EDF2F7; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+        .progress-fill.math { background: var(--success); }
+        .progress-fill.port { background: var(--primary); }
+        .progress-fill.sci { background: #FF9100; }
+        .progress-fill.hist { background: var(--accent); }
+        .sub-percent { font-weight: 700; font-size: 14px; margin-left: 6px; min-width: 36px; text-align: right; }
+        .bottom-nav { display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px 0 20px; background: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); flex-shrink: 0; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: var(--text-light); font-size: 10px; font-weight: 500; cursor: pointer; font-family: inherit; padding: 4px; }
+        .nav-item.active { color: var(--primary); }
+        .nav-icon { font-size: 20px; }
+        .toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(80px); background: rgba(10,22,40,0.92); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; opacity: 0; transition: all 0.3s ease; z-index: 1000; white-space: nowrap; pointer-events: none; backdrop-filter: blur(8px); }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.92); display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; z-index: 999; border-radius: inherit; }
+        .loading-overlay.active { display: flex; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #E2E8F0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { color: var(--text-medium); font-size: 14px; font-weight: 500; }
+        .result-card { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border-radius: 14px; padding: 16px; margin-bottom: 16px; border-left: 4px solid var(--primary); display: none; }
+        .result-card.show { display: block; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .result-card h4 { font-size: 14px; color: var(--primary); margin-bottom: 6px; }
+        .result-card p { font-size: 13px; color: var(--text-medium); line-height: 1.5; }
+    </style>
+<base target="_blank">
+</head>
+<body>
+<div class="phone-frame">
+    <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div><div class="loading-text">Processando...</div></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- SCREEN 1: LANDING -->
+    <div class="screen active" id="screen-landing">
+        <div class="landing-screen">
+            <div class="landing-logo">
+                <svg class="brain-icon" viewBox="0 0 100 100" fill="none">
+                    <img src="./IMG/Captura de tela 2026-06-16 094733.png" alt="logo" style="width:20%; height:100%;">
+                </svg>
+                <div class="landing-title">DECIFRA<br><span>AÍ</span></div>
+                <div class="landing-tagline">Entenda a pergunta,<br>Acerte a resposta</div>
+            </div>
+            <div class="landing-buttons">
+                <button class="btn btn-primary" onclick="goTo('login')">Entrar <span class="btn-arrow">›</span></button>
+                <button class="btn btn-outline" onclick="goTo('register')">Criar conta <span class="btn-arrow">›</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: LOGIN -->
+    <div class="screen" id="screen-login">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('landing')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Bem-vindo de volta! 👋</div>
+            <div class="card-subtitle">Faça login para continuar aprendendo.</div>
+            <div class="form-group">
+                <label class="form-label">E-mail</label>
+                <div class="input-wrap"><span class="input-icon">✉</span><input type="email" class="form-input" placeholder="Digite seu e-mail" id="loginEmail"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Senha</label>
+                <div class="input-wrap"><span class="input-icon">🔒</span><input type="password" class="form-input" placeholder="Digite sua senha" id="loginPassword"><button class="password-toggle" onclick="togglePwd('loginPassword')">👁</button></div>
+            </div>
+            <div class="forgot-link"><a href="#" onclick="toast('Função em desenvolvimento')">Esqueceu sua senha?</a></div>
+            <button class="btn btn-primary" onclick="doLogin()">Entrar <span class="btn-arrow">›</span></button>
+            <div class="divider">ou</div>
+            <button class="btn btn-social" onclick="toast('Login Google em breve')"><span style="font-size:18px">🔍</span> Entrar com Google</button>
+            <button class="btn btn-social" onclick="toast('Login Facebook em breve')"><span style="font-size:18px; color:#1877F2">●</span> Entrar com Facebook</button>
+            <div class="text-center">Ainda não tem uma conta? <a href="#" class="text-link" onclick="goTo('register')">Criar conta</a></div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: REGISTER -->
+    <div class="screen" id="screen-register">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('landing')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Criar sua conta ✨</div>
+            <div class="card-subtitle">Preencha os dados abaixo para começar sua jornada.</div>
+            <div class="form-group">
+                <label class="form-label">Nome completo</label>
+                <div class="input-wrap"><span class="input-icon">👤</span><input type="text" class="form-input" placeholder="Digite seu nome completo" id="regName"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">E-mail</label>
+                <div class="input-wrap"><span class="input-icon">✉</span><input type="email" class="form-input" placeholder="Digite seu e-mail" id="regEmail"></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Senha</label>
+                <div class="input-wrap"><span class="input-icon">🔒</span><input type="password" class="form-input" placeholder="Crie uma senha" id="regPassword"><button class="password-toggle" onclick="togglePwd('regPassword')">👁</button></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirmar senha</label>
+                <div class="input-wrap"><span class="input-icon">🔒</span><input type="password" class="form-input" placeholder="Confirme sua senha" id="regConfirm"><button class="password-toggle" onclick="togglePwd('regConfirm')">👁</button></div>
+            </div>
+            <button class="btn btn-primary" onclick="doRegister()">Criar conta <span class="btn-arrow">›</span></button>
+            <div class="divider">ou</div>
+            <button class="btn btn-social" onclick="toast('Cadastro Google em breve')"><span style="font-size:18px">🔍</span> Cadastrar com Google</button>
+            <button class="btn btn-social" onclick="toast('Cadastro Facebook em breve')"><span style="font-size:18px; color:#1877F2">●</span> Cadastrar com Facebook</button>
+            <div class="text-center">Já tem uma conta? <a href="#" class="text-link" onclick="goTo('login')">Entrar</a></div>
+        </div>
+    </div>
+
+    <!-- SCREEN 4: HOME -->
+    <div class="screen" id="screen-home">
+        <div class="screen-header">
+            <div class="header-placeholder" style="opacity:0"></div>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <button class="header-bell" onclick="toast('Sem notificações novas')">🔔</button>
+        </div>
+        <div class="home-greeting">
+            <h1>Olá, <span id="homeUserName">Roberto</span>! 👋</h1>
+            <p>Vamos aprender hoje?</p>
+        </div>
+        <div class="menu-list">
+            <button class="menu-item" onclick="goTo('scan')"><div class="menu-icon-box">📷</div><div class="menu-text">ESCANEAR QUESTÃO</div><div class="menu-arrow">›</div></button>
+            <button class="menu-item" onclick="goTo('type')"><div class="menu-icon-box">✏️</div><div class="menu-text">DIGITAR QUESTÃO</div><div class="menu-arrow">›</div></button>
+            <button class="menu-item" onclick="goTo('audio')"><div class="menu-icon-box">🎧</div><div class="menu-text">OUVIR QUESTÃO</div><div class="menu-arrow">›</div></button>
+            <button class="menu-item" onclick="goTo('challenges')"><div class="menu-icon-box">🎮</div><div class="menu-text">DESAFIOS</div><div class="menu-arrow">›</div></button>
+            <button class="menu-item" onclick="goTo('performance')"><div class="menu-icon-box">📊</div><div class="menu-text">MEU DESEMPENHO</div><div class="menu-arrow">›</div></button>
+        </div>
+        <div class="points-bar">
+            <div class="points-info"><span class="points-icon">🏆</span><div><div class="points-label">Pontos</div><div class="points-value" id="homePoints">120</div></div></div>
+            <button class="star-btn" onclick="toast('Conquistas em breve')">⭐</button>
+        </div>
+        <div style="flex:1"></div>
+        <div class="bottom-nav">
+            <button class="nav-item active" onclick="goTo('home')"><span class="nav-icon">🏠</span><span>Início</span></button>
+            <button class="nav-item" onclick="goTo('performance')"><span class="nav-icon">📊</span><span>Resumo</span></button>
+            <button class="nav-item" onclick="goTo('challenges')"><span class="nav-icon">🏆</span><span>Conquistas</span></button>
+            <button class="nav-item" onclick="toast('Perfil em breve')"><span class="nav-icon">👤</span><span>Perfil</span></button>
+        </div>
+    </div>
+
+    <!-- SCREEN 5: SCAN -->
+    <div class="screen" id="screen-scan">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('home')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Escanear questão 📷</div>
+            <div class="card-subtitle">Tire uma foto da sua questão para que possamos ajudar.</div>
+            <div class="camera-area" id="cameraArea">
+                <div class="camera-paper">
+                    <strong>Questão 12</strong>
+                    <p>(Fuvest-SP) Em um triângulo retângulo, os catetos medem 3 cm e 4 cm. Qual é a medida da hipotenusa?</p>
+                    <div class="options">a) 5 cm<br>b) 6 cm<br>c) 7 cm<br>d) 8 cm<br>e) 9 cm</div>
+                </div>
+                <button class="flash-btn" onclick="toggleFlash()" id="flashBtn">⚡</button>
+            </div>
+            <div class="camera-controls">
+                <button class="cam-control" onclick="pickGallery()"><div class="cam-control-icon">🖼</div><span>Galeria</span></button>
+                <button class="cam-control main" onclick="capturePhoto()"><div class="cam-control-icon">📷</div></button>
+                <button class="cam-control" onclick="toggleFlash()"><div class="cam-control-icon">⚡</div><span>Flash</span></button>
+            </div>
+            <div class="result-card" id="scanResult">
+                <h4>✅ Resposta detectada</h4>
+                <p><strong>Alternativa correta: a) 5 cm</strong><br>Pelo Teorema de Pitágoras: hip² = 3² + 4² = 9 + 16 = 25 → hip = 5 cm</p>
+            </div>
+            <div class="tips-section">
+                <div class="tips-title">💡 Dicas para uma boa foto</div>
+                <ul class="tips-list"><li>Deixe a imagem nítida</li><li>Evite sombras e reflexos</li><li>Mostre toda a questão</li></ul>
+            </div>
+            <button class="btn btn-primary" onclick="sendImage()">Enviar imagem <span class="btn-arrow">›</span></button>
+        </div>
+    </div>
+
+    <!-- SCREEN 6: TYPE -->
+    <div class="screen" id="screen-type">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('home')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Digitar questão ✏️</div>
+            <div class="card-subtitle">Digite sua questão abaixo para que possamos ajudar.</div>
+            <div class="form-group" style="margin-top:4px">
+                <label class="form-label">Sua questão</label>
+                <div class="textarea-box"><textarea class="question-textarea" placeholder="Digite ou cole sua questão aqui..." id="typeText" maxlength="2000" oninput="updateCount()"></textarea></div>
+                <div class="char-count" id="charCount">0/2000 caracteres</div>
+            </div>
+            <div class="result-card" id="typeResult">
+                <h4>🤖 Análise da IA</h4>
+                <p id="typeResultText">Analisando sua questão...</p>
+            </div>
+            <div class="tips-section">
+                <div class="tips-title">💡 Dicas para uma boa pergunta</div>
+                <ul class="tips-list"><li>Seja claro e objetivo</li><li>Inclua todos os dados importantes</li><li>Revise antes de enviar</li></ul>
+            </div>
+            <button class="btn btn-primary" onclick="sendType()">Enviar questão <span class="btn-arrow">›</span></button>
+        </div>
+    </div>
+
+    <!-- SCREEN 7: AUDIO -->
+    <div class="screen" id="screen-audio">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('home')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Ouvir questão 🎧</div>
+            <div class="card-subtitle">Grave ou envie um áudio com sua questão.</div>
+            <div class="audio-center">
+                <button class="mic-btn" id="micBtn" onclick="toggleRec()">🎙</button>
+                <div class="record-label" id="recLabel">Toque para começar a gravar</div>
+                <div class="timer-display" id="recTimer">00:00</div>
+                <div class="wave-container" id="waveBox"></div>
+                <div class="audio-actions-row">
+                    <button class="audio-action" onclick="pickAudio()"><span>🖼</span> Galeria</button>
+                    <button class="audio-action" onclick="sendAudio()"><span>📤</span> Enviar áudio</button>
+                </div>
+            </div>
+            <div class="result-card" id="audioResult">
+                <h4>🎤 Transcrição</h4>
+                <p>"Qual a fórmula da área do círculo?"<br><br><strong>Resposta:</strong> A = π × r²</p>
+            </div>
+            <div class="tips-section">
+                <div class="tips-title">💡 Dicas de gravação</div>
+                <ul class="tips-list"><li>Fale devagar e com clareza</li><li>Evite ruídos ao fundo</li><li>Diga todos os detalhes</li></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 8: CHALLENGES -->
+    <div class="screen" id="screen-challenges">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('home')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Desafios 🎮</div>
+            <div class="card-subtitle">Participe dos desafios e ganhe pontos!</div>
+            <div class="challenge-banner">
+                <h3>🏆 DESAFIO DA SEMANA</h3>
+                <p>Responda o máximo de questões corretamente e suba no ranking!</p>
+                <div class="challenge-timer">⏱ Termina em 5 dias</div>
+            </div>
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab(this, 'ranking')">Ranking</button>
+                <button class="tab-btn" onclick="switchTab(this, 'mychallenges')">Meus desafios</button>
+            </div>
+            <div id="ranking-panel">
+                <div class="ranking-list">
+                    <div class="rank-row"><div class="rank-num gold">1</div><div class="rank-avatar" style="background:linear-gradient(135deg,#FF6B6B,#EE5A6F)">M</div><div class="rank-name">Maria</div><div class="rank-points">150 pts</div></div>
+                    <div class="rank-row"><div class="rank-num silver">2</div><div class="rank-avatar" style="background:linear-gradient(135deg,#4ECDC4,#44A08D)">J</div><div class="rank-name">João</div><div class="rank-points">145 pts</div></div>
+                    <div class="rank-row"><div class="rank-num bronze">3</div><div class="rank-avatar" style="background:linear-gradient(135deg,#F093FB,#F5576C)">A</div><div class="rank-name">Ana</div><div class="rank-points">130 pts</div></div>
+                    <div class="rank-row"><div class="rank-num normal">4</div><div class="rank-avatar" style="background:linear-gradient(135deg,#FA709A,#FEE140)">P</div><div class="rank-name">Pedro</div><div class="rank-points">120 pts</div></div>
+                    <div class="rank-row"><div class="rank-num normal">5</div><div class="rank-avatar" style="background:linear-gradient(135deg,#30CFD0,#330867)">L</div><div class="rank-name">Lucas</div><div class="rank-points">110 pts</div></div>
+                </div>
+                <div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:8px">Sua posição</div>
+                <div class="my-position-box">
+                    <div class="rank-num normal" style="background:var(--primary);color:#fff">6</div>
+                    <div class="rank-avatar" style="background:linear-gradient(135deg,#667eea,#764ba2)">V</div>
+                    <div style="flex:1"><div style="font-weight:600;font-size:14px">Você</div></div>
+                    <div style="font-weight:700;font-size:14px">120 pts</div>
+                </div>
+            </div>
+            <div id="mychallenges-panel" style="display:none">
+                <div style="text-align:center;padding:40px 20px;color:var(--text-light)">
+                    <div style="font-size:40px;margin-bottom:12px">🎯</div>
+                    <div style="font-weight:600;color:var(--text-dark);margin-bottom:6px;font-size:15px">Nenhum desafio ativo</div>
+                    <div style="font-size:13px">Participe de um desafio para começar!</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="toast('Desafios disponíveis em breve!')">Ver desafios disponíveis <span class="btn-arrow">›</span></button>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="goTo('home')"><span class="nav-icon">🏠</span><span>Início</span></button>
+            <button class="nav-item" onclick="goTo('performance')"><span class="nav-icon">📊</span><span>Resumo</span></button>
+            <button class="nav-item active" onclick="goTo('challenges')"><span class="nav-icon">🏆</span><span>Conquistas</span></button>
+            <button class="nav-item" onclick="toast('Perfil em breve')"><span class="nav-icon">👤</span><span>Perfil</span></button>
+        </div>
+    </div>
+
+    <!-- SCREEN 9: PERFORMANCE -->
+    <div class="screen" id="screen-performance">
+        <div class="screen-header">
+            <button class="header-back" onclick="goTo('home')">←</button>
+            <div class="header-logo">
+                <svg viewBox="0 0 28 28" fill="none">
+                    <path d="M14 2C9 2 5 6 5 12C5 16 8 19 11 20L11 24C11 25 12 26 13 26L15 26C16 26 17 25 17 24L17 20C20 19 23 16 23 12C23 6 19 2 14 2Z" stroke="white" stroke-width="2" fill="none"/>
+                    <circle cx="14" cy="10" r="2" fill="white"/>
+                </svg>DECIFRA AÍ
+            </div>
+            <div class="header-placeholder"></div>
+        </div>
+        <div class="card">
+            <div class="card-title">Meu desempenho 📊</div>
+            <div class="card-subtitle">Acompanhe seu progresso e evolução.</div>
+            <div class="score-card">
+                <div class="score-trophy">🏆</div>
+                <div class="score-info"><h4>Pontuação geral</h4><div class="score-big">120</div><div class="score-unit">pontos</div></div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-box"><div class="stat-emoji">📄</div><div class="stat-label">Questões respondidas</div><div class="stat-val blue">24</div></div>
+                <div class="stat-box"><div class="stat-emoji">✅</div><div class="stat-label">Acertos</div><div class="stat-val green">18</div></div>
+                <div class="stat-box"><div class="stat-emoji">🎯</div><div class="stat-label">Taxa de acerto</div><div class="stat-val blue">75%</div></div>
+                <div class="stat-box"><div class="stat-emoji">🔥</div><div class="stat-label">Sequência atual</div><div class="stat-val purple">5 dias</div></div>
+            </div>
+            <div class="section-title">Desempenho por assunto</div>
+            <div class="subject-row">
+                <div class="sub-icon math">➕</div>
+                <div class="sub-info"><div class="sub-name">Matemática</div><div class="progress-track"><div class="progress-fill math" style="width:80%"></div></div></div>
+                <div class="sub-percent">80%</div>
+            </div>
+            <div class="subject-row">
+                <div class="sub-icon port">A</div>
+                <div class="sub-info"><div class="sub-name">Português</div><div class="progress-track"><div class="progress-fill port" style="width:70%"></div></div></div>
+                <div class="sub-percent">70%</div>
+            </div>
+            <div class="subject-row">
+                <div class="sub-icon sci">🔬</div>
+                <div class="sub-info"><div class="sub-name">Ciências</div><div class="progress-track"><div class="progress-fill sci" style="width:60%"></div></div></div>
+                <div class="sub-percent">60%</div>
+            </div>
+            <div class="subject-row">
+                <div class="sub-icon hist">📜</div>
+                <div class="sub-info"><div class="sub-name">História</div><div class="progress-track"><div class="progress-fill hist" style="width:50%"></div></div></div>
+                <div class="sub-percent">50%</div>
+            </div>
+        </div>
+        <div class="bottom-nav">
+            <button class="nav-item" onclick="goTo('home')"><span class="nav-icon">🏠</span><span>Início</span></button>
+            <button class="nav-item active" onclick="goTo('performance')"><span class="nav-icon">📊</span><span>Resumo</span></button>
+            <button class="nav-item" onclick="goTo('challenges')"><span class="nav-icon">🏆</span><span>Conquistas</span></button>
+            <button class="nav-item" onclick="toast('Perfil em breve')"><span class="nav-icon">👤</span><span>Perfil</span></button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentUser = null;
+let isRecording = false;
+let recordingInterval = null;
+let recordingSeconds = 0;
+let flashOn = false;
+
+function goTo(screenName) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const target = document.getElementById('screen-' + screenName);
+    if (target) {
+        target.classList.add('active');
+        window.scrollTo(0, 0);
+    }
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+}
+
+function toast(message) {
+    const t = document.getElementById('toast');
+    t.textContent = message;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function showLoading(show) {
+    document.getElementById('loadingOverlay').classList.toggle('active', show);
+}
+
+function togglePwd(inputId) {
+    const input = document.getElementById(inputId);
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+function doLogin() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) { toast('Preencha todos os campos'); return; }
+    showLoading(true);
+    setTimeout(() => {
+        showLoading(false);
+        currentUser = { name: 'Roberto', email: email, points: 120 };
+        document.getElementById('homeUserName').textContent = 'Roberto';
+        toast('Login realizado com sucesso!');
+        goTo('home');
+    }, 1500);
+}
+
+function doRegister() {
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regConfirm').value;
+    if (!name || !email || !password || !confirm) { toast('Preencha todos os campos'); return; }
+    if (password !== confirm) { toast('As senhas não conferem'); return; }
+    showLoading(true);
+    setTimeout(() => {
+        showLoading(false);
+        currentUser = { name: name, email: email, points: 0 };
+        document.getElementById('homeUserName').textContent = name.split(' ')[0];
+        toast('Conta criada com sucesso!');
+        goTo('home');
+    }, 1500);
+}
+
+function updateCount() {
+    const textarea = document.getElementById('typeText');
+    const count = textarea.value.length;
+    document.getElementById('charCount').textContent = count + '/2000 caracteres';
+}
+
+function sendType() {
+    const text = document.getElementById('typeText').value;
+    if (!text.trim()) { toast('Digite uma questão primeiro'); return; }
+    showLoading(true);
+    setTimeout(() => {
+        showLoading(false);
+        const result = document.getElementById('typeResult');
+        const resultText = document.getElementById('typeResultText');
+        resultText.innerHTML = '<strong>Resposta:</strong><br>Esta questão aborda o conceito de...<br><br>Baseado na análise, a resposta correta é a alternativa <strong>B</strong>.';
+        result.classList.add('show');
+        toast('Questão enviada! Analisando...');
+        document.getElementById('typeText').value = '';
+        updateCount();
+    }, 2000);
+}
+
+function toggleFlash() {
+    flashOn = !flashOn;
+    const btn = document.getElementById('flashBtn');
+    if (btn) btn.style.background = flashOn ? 'rgba(255,255,0,0.4)' : 'rgba(255,255,255,0.2)';
+    toast(flashOn ? 'Flash ligado' : 'Flash desligado');
+}
+
+function capturePhoto() {
+    toast('Capturando foto...');
+    setTimeout(() => {
+        document.getElementById('scanResult').classList.add('show');
+        toast('Foto capturada!');
+    }, 800);
+}
+
+function pickGallery() {
+    toast('Selecione uma imagem da galeria');
+}
+
+function sendImage() {
+    const result = document.getElementById('scanResult');
+    if (!result.classList.contains('show')) {
+        toast('Capture uma foto primeiro');
+        return;
+    }
+    showLoading(true);
+    setTimeout(() => {
+        showLoading(false);
+        toast('Imagem enviada! Analisando questão...');
+    }, 2000);
+}
+
+function toggleRec() {
+    const btn = document.getElementById('micBtn');
+    const timer = document.getElementById('recTimer');
+    const label = document.getElementById('recLabel');
+    const wave = document.getElementById('waveBox');
+
+    if (!isRecording) {
+        isRecording = true;
+        btn.classList.add('recording');
+        recordingSeconds = 0;
+        timer.textContent = '00:00';
+        label.textContent = 'Gravando... Toque para parar';
+        animateWave();
+        recordingInterval = setInterval(() => {
+            recordingSeconds++;
+            const mins = Math.floor(recordingSeconds / 60).toString().padStart(2, '0');
+            const secs = (recordingSeconds % 60).toString().padStart(2, '0');
+            timer.textContent = mins + ':' + secs;
+        }, 1000);
+        toast('Gravação iniciada');
+    } else {
+        isRecording = false;
+        btn.classList.remove('recording');
+        clearInterval(recordingInterval);
+        label.textContent = 'Toque para começar a gravar';
+        wave.innerHTML = '';
+        toast('Gravação finalizada');
+        document.getElementById('audioResult').classList.add('show');
+    }
+}
+
+function animateWave() {
+    const wave = document.getElementById('waveBox');
+    wave.innerHTML = '';
+    for (let i = 0; i < 30; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'wave-bar';
+        bar.style.height = (Math.random() * 28 + 4) + 'px';
+        wave.appendChild(bar);
+    }
+    if (isRecording) setTimeout(animateWave, 120);
+}
+
+function pickAudio() {
+    toast('Selecione um áudio da galeria');
+}
+
+function sendAudio() {
+    if (recordingSeconds === 0 && !isRecording) { toast('Grave um áudio primeiro'); return; }
+    if (isRecording) toggleRec();
+    showLoading(true);
+    setTimeout(() => {
+        showLoading(false);
+        toast('Áudio enviado! Analisando...');
+        recordingSeconds = 0;
+        document.getElementById('recTimer').textContent = '00:00';
+    }, 2000);
+}
+
+function switchTab(tabElement, contentId) {
+    document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+    tabElement.classList.add('active');
+    document.getElementById('ranking-panel').style.display = contentId === 'ranking' ? 'block' : 'none';
+    document.getElementById('mychallenges-panel').style.display = contentId === 'mychallenges' ? 'block' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const wave = document.getElementById('waveBox');
+    if (wave) {
+        for (let i = 0; i < 30; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'wave-bar';
+            bar.style.height = '4px';
+            bar.style.opacity = '0.3';
+            wave.appendChild(bar);
+        }
+    }
+});
+</script>
+</body>
+</html>
